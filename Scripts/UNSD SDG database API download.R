@@ -56,14 +56,19 @@ indicator_code <- indicators %>%
   pull(code)
 
 # Create dataframe that contains count of how many countries have data for each indicator
+# Initialize empty dataframe
 indicator_df <- data.frame()
 for (i in indicator_code){
   indicator_df <- indicator_df %>%
     bind_rows(
       fromJSON(str_c("https://unstats.un.org/SDGAPI/v1/sdg/Indicator/", i, "/GeoAreas")) %>%
+        # Make numeric un_code
         mutate(un_code = as.numeric(geoAreaCode)) %>%
+        # Subset to just UN member states
         inner_join(un_member_states) %>%
+        # Count number of observations, which counts number of countries
+        # with data by extension
         count() %>%
-        mutate(indicator = i) %>%
-        select(indicator, n))
+        # Add column with indicator name before number of countries
+        mutate(indicator = i, .before = 1))
 }
