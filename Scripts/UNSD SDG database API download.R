@@ -72,3 +72,15 @@ for (i in indicator_code){
         # Add column with indicator name before number of countries
         mutate(indicator = i, .before = 1))
 }
+
+# Create average coverage by goal
+indicator_df %>%
+  # Create goal variable, create share of countries with data by indicator
+  mutate(goal = as.numeric(str_extract(indicator, "^[0-9]+(?=\\.)")),
+         # Create share by dividing number of countries per indicator (n)
+         # By number of UN member states and Palestine (193 + 1)
+         share_data = n/(un_member_states %>% count() %>% pull())) %>%
+  group_by(goal) %>%
+  summarize(avg_country_data = mean(share_data, na.rm = TRUE)) %>%
+  ungroup() %>%
+  arrange(avg_country_data)
