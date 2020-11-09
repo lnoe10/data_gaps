@@ -38,10 +38,14 @@ for (i in goal_code){
 # Get list of all indicators and indicator codes
 indicators <- fromJSON("https://unstats.un.org/SDGAPI/v1/sdg/Indicator/List")
 indicator_code <- indicators %>%
-  # Manually drop indicator 13.2.2 because it doesn't actually have any data, in this case no series
-  # And will screw up loop below if left in
-  # FIND WAY TO MAKE THIS PROGRAMMATIC
-  filter(code != "13.2.2") %>%
+  # Filter out indicators with no series (i.e. no data) by counting rows in dataframes
+  # that are nested in the series column.
+  group_by(code) %>%
+  mutate(rows = nrow(series[[1]])) %>%
+  ungroup() %>%
+  # Drop codes without any series attached. This is the same as having no actual data
+  filter(rows != 0) %>%
+  # Create vector
   pull(code)
 
 # Create dataframe that contains count of how many countries have data for each indicator
