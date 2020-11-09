@@ -84,3 +84,8 @@ indicator_df %>%
   summarize(avg_country_data = mean(share_data, na.rm = TRUE)) %>%
   ungroup() %>%
   arrange(avg_country_data)
+
+# TO DO
+# Merge in total indicators to account for missing indicators, right now
+# just doing share of indicators with some data.
+# Can use cleaned Tier classification file
