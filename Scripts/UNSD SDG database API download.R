@@ -17,6 +17,13 @@ odw_master_codes <- read_csv("https://raw.githubusercontent.com/lnoe10/odw_covid
   mutate(un_code = as.numeric(un_code), 
          incgroup = fct_relevel(incgroup, "Low income", "Lower middle income", "Upper middle income", "High income"))
 
+# Add list of UN member states and manually include Palestine
+un_member_states <- read_csv("Input/un_members.csv") %>%
+  janitor::clean_names() %>%
+  add_row(member_state = "Palestine") %>%
+  mutate(un_code = countrycode::countrycode(member_state, "country.name", "un")) %>%
+  select(un_code)
+
 # Get number of goals and goal codes
 goals <- fromJSON("https://unstats.un.org/SDGAPI/v1/sdg/Goal/List")
 goal_code <- goals %>%
@@ -55,7 +62,7 @@ for (i in indicator_code){
     bind_rows(
       fromJSON(str_c("https://unstats.un.org/SDGAPI/v1/sdg/Indicator/", i, "/GeoAreas")) %>%
         mutate(un_code = as.numeric(geoAreaCode)) %>%
-        inner_join(odw_master_codes) %>%
+        inner_join(un_member_states) %>%
         count() %>%
         mutate(indicator = i) %>%
         select(indicator, n))
