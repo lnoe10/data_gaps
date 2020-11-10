@@ -75,8 +75,17 @@ for (i in indicator_code){
 
 # Create average coverage by goal
 indicator_df %>%
-  # Create goal variable, create share of countries with data by indicator
-  mutate(goal = as.numeric(str_extract(indicator, "^[0-9]+(?=\\.)")),
+  # Merge in list of all SDG indicators, from repository where I clean official UNSD IAEG-SDG list of indicators and
+  # Tier classifications
+  right_join(read_csv("https://raw.githubusercontent.com/lnoe10/sdg_tier_classifications/master/Output/Tier%20classification%2017%20July%20clean.csv") %>%
+               select(indicator = indicator_num)) %>%
+  # Replace country count with 0 for those merged in, where n will show NA
+  # Also Create goal variable, create share of countries with data by indicator
+  mutate(n = case_when(
+    is.na(n) ~ 0L,
+    TRUE ~ n
+    ),
+    goal = as.numeric(str_extract(indicator, "^[0-9]+(?=\\.)")),
          # Create share by dividing number of countries per indicator (n)
          # By number of UN member states and Palestine (193 + 1)
          share_data = n/(un_member_states %>% count() %>% pull())) %>%
@@ -84,8 +93,3 @@ indicator_df %>%
   summarize(avg_country_data = mean(share_data, na.rm = TRUE)) %>%
   ungroup() %>%
   arrange(avg_country_data)
-
-# TO DO
-# Merge in total indicators to account for missing indicators, right now
-# just doing share of indicators with some data.
-# Can use cleaned Tier classification file
